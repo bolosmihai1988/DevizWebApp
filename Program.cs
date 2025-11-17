@@ -21,10 +21,12 @@ if (!app.Environment.IsDevelopment())
 // Middleware standard
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
+
+// --- MODIFICARE PENTRU RENDER ---
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 // Setează ruta implicită către DevizController / Index
 app.MapControllerRoute(
