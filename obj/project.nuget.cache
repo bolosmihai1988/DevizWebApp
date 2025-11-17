@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "xAJAENjRBoc=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Mihai PC\\Desktop\\DevizWebApp\\DevizWebApp.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Mihai PC\\.nuget\\packages\\questpdf\\2025.7.4\\questpdf.2025.7.4.nupkg.sha512"
+  ],
+  "logs": []
+}

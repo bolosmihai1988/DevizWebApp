@@ -1,0 +1,89 @@
+@model DevizWebApp.Models.DevizDocumentModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Generator Deviz Auto</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        input { margin-bottom: 5px; padding: 5px; width: 250px; }
+        h3 { margin-top: 20px; }
+        .piesa, .manopera { margin-bottom: 10px; }
+        button { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Generator Deviz Auto</h2>
+
+    <form asp-action="GeneratePDF" method="post">
+        <label>Firmă:</label><br/>
+        <input asp-for="Firma" /><br/>
+        <label>CUI:</label><br/>
+        <input asp-for="CUI" /><br/>
+        <label>Adresă:</label><br/>
+        <input asp-for="Adresa" /><br/>
+        <label>Telefon:</label><br/>
+        <input asp-for="Telefon" /><br/>
+        <label>Data devizului:</label><br/>
+        <input asp-for="Data" placeholder="DD/MM/YYYY" /><br/>
+
+        <label>Mașină:</label><br/>
+        <input asp-for="Masina" /><br/>
+        <label>Număr înmatriculare:</label><br/>
+        <input asp-for="NrInmat" /><br/>
+        <label>KM:</label><br/>
+        <input asp-for="KM" /><br/>
+        <label>Serie caroserie:</label><br/>
+        <input asp-for="SerieCaroserie" /><br/>
+        <label>Serie motor:</label><br/>
+        <input asp-for="SerieMotor" /><br/>
+
+        <label>Constatare:</label><br/>
+        <input asp-for="Constatare" /><br/>
+        <label>Lucrări convenite:</label><br/>
+        <input asp-for="LucrariConvenite" /><br/>
+        <label>Piese aduse de client:</label><br/>
+        <input asp-for="PieseAduseClient" /><br/>
+
+        <h3>Piese</h3>
+        <div id="pieseContainer"></div>
+        <button type="button" onclick="addPiesa()">Adaugă piesă</button>
+
+        <h3>Manoperă</h3>
+        <div id="manoperaContainer"></div>
+        <button type="button" onclick="addManopera()">Adaugă lucrare</button>
+
+        <br/><br/>
+        <button type="submit">Generează PDF</button>
+    </form>
+
+    <script>
+        function addPiesa() {
+            let index = $('#pieseContainer .piesa').length;
+            $('#pieseContainer').append(`
+                <div class="piesa">
+                    <input name="Piese[${index}].Denumire" placeholder="Denumire piesă" />
+                    <input name="Piese[${index}].Cantitate" placeholder="Cantitate" type="number" step="0.01" value="1" />
+                    <input name="Piese[${index}].PretCuTVA" placeholder="Preț unitar CU TVA" type="number" step="0.01" />
+                </div>
+            `);
+        }
+
+        function addManopera() {
+            let index = $('#manoperaContainer .manopera').length;
+            $('#manoperaContainer').append(`
+                <div class="manopera">
+                    <input name="Manopera[${index}].Denumire" placeholder="Denumire lucrare" />
+                    <input name="Manopera[${index}].PretCuTVA" placeholder="Preț CU TVA" type="number" step="0.01" />
+                </div>
+            `);
+        }
+    </script>
+</body>
+</html>
