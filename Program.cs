@@ -1,11 +1,35 @@
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Adaugă servicii MVC (pentru Views și Controllers)
+builder.Services.AddControllersWithViews();
+
+// Activează QuestPDF (licența comunitară)
+QuestPDF.Settings.License = LicenseType.Community;
+
 var app = builder.Build();
 
-// Ascultă pe toate interfețele din container
-app.Urls.Add("http://0.0.0.0:80");
+// Middleware pentru gestionarea erorilor și HSTS
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
-// Pagină simplă de test
-app.MapGet("/", () => "Hello from DevizWebApp!");
+// Middleware standard
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+// Setează ruta implicită către DevizController / Index
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Deviz}/{action=Index}/{id?}");
 
 // Rulează aplicația
 app.Run();
