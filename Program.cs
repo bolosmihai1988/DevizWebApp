@@ -2,22 +2,18 @@ using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using DevizWebApp.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
 using Npgsql;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ========================
 // CONFIGURARE BAZA DE DATE (PostgreSQL)
 // ========================
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL") 
+                  ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Fallback la appsettings.json dacă DATABASE_URL nu există
-if (string.IsNullOrEmpty(databaseUrl))
-{
-    databaseUrl = builder.Configuration.GetConnectionString("DefaultConnection");
-}
-
-// Parsează DATABASE_URL (postgres://user:pass@host:port/db) în connection string Npgsql
 if (!string.IsNullOrEmpty(databaseUrl) &&
     (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://")))
 {
@@ -39,7 +35,6 @@ if (!string.IsNullOrEmpty(databaseUrl) &&
     databaseUrl = npgsqlBuilder.ConnectionString;
 }
 
-// Configurează DbContext PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(databaseUrl));
 
@@ -49,6 +44,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllersWithViews();
 QuestPDF.Settings.License = LicenseType.Community;
 
+// ========================
+// DATA PROTECTION PERSISTENT (antiforgery fix)
+// ========================
+var keysPath = "/tmp/keys";
+if (!Directory.Exists(keysPath))
+{
+    Directory.CreateDirectory(keysPath);
+}
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
+    .SetApplicationName("DevizWebApp");
+
+// ========================
+// BUILD APP
+// ========================
 var app = builder.Build();
 
 // ========================
@@ -59,7 +70,7 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        db.Database.Migrate(); // aplica automat toate migrațiile
+        db.Database.Migrate();
     }
 }
 catch (Exception ex)
