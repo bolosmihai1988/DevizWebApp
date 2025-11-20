@@ -11,14 +11,15 @@ var builder = WebApplication.CreateBuilder(args);
 // ========================
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Fallback la appsettings.json dacă variabila nu există
+// Fallback la appsettings.json dacă DATABASE_URL nu există
 if (string.IsNullOrEmpty(databaseUrl))
 {
     databaseUrl = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
 // Parsează DATABASE_URL (postgres://user:pass@host:port/db) în connection string Npgsql
-if (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://"))
+if (!string.IsNullOrEmpty(databaseUrl) &&
+    (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://")))
 {
     var uri = new Uri(databaseUrl);
     var userInfo = uri.UserInfo.Split(':', 2);
@@ -58,7 +59,7 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        db.Database.Migrate();
+        db.Database.Migrate(); // aplica automat toate migrațiile
     }
 }
 catch (Exception ex)
