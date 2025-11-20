@@ -9,42 +9,43 @@ var builder = WebApplication.CreateBuilder(args);
 // ========================
 // CONFIGURARE BAZA DE DATE (PostgreSQL)
 // ========================
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-// Citește connection string-ul din variabila de mediu Render
-var databaseUrl = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-
-// Fallback la appsettings.json dacă nu e setat (pentru dev local)
+// Fallback la appsettings.json dacă variabila nu există
 if (string.IsNullOrEmpty(databaseUrl))
 {
     databaseUrl = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
-// Parsează DATABASE_URL într-un connection string compatibil Npgsql
-var uri = new Uri(databaseUrl);
-var userInfo = uri.UserInfo.Split(':', 2);
-
-var npgsqlBuilder = new NpgsqlConnectionStringBuilder
+// Parsează DATABASE_URL (postgres://user:pass@host:port/db) în connection string Npgsql
+if (databaseUrl.StartsWith("postgres://") || databaseUrl.StartsWith("postgresql://"))
 {
-    Host = uri.Host,
-    Port = uri.Port,
-    Username = userInfo[0],
-    Password = userInfo.Length > 1 ? userInfo[1] : string.Empty,
-    Database = uri.AbsolutePath.TrimStart('/'),
-    SslMode = SslMode.Require,
-    TrustServerCertificate = true,
-    Pooling = true
-};
+    var uri = new Uri(databaseUrl);
+    var userInfo = uri.UserInfo.Split(':', 2);
 
-// Configurează DbContext cu PostgreSQL
+    var npgsqlBuilder = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.Port > 0 ? uri.Port : 5432,
+        Username = userInfo[0],
+        Password = userInfo.Length > 1 ? userInfo[1] : string.Empty,
+        Database = uri.AbsolutePath.TrimStart('/'),
+        SslMode = SslMode.Require,
+        TrustServerCertificate = true,
+        Pooling = true
+    };
+
+    databaseUrl = npgsqlBuilder.ConnectionString;
+}
+
+// Configurează DbContext PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(npgsqlBuilder.ConnectionString));
+    options.UseNpgsql(databaseUrl));
 
 // ========================
 // SERVICII MVC / Views
 // ========================
 builder.Services.AddControllersWithViews();
-
-// Activează QuestPDF (licența comunitară)
 QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
@@ -52,10 +53,17 @@ var app = builder.Build();
 // ========================
 // MIGRAȚII AUTOMATE
 // ========================
-using (var scope = app.Services.CreateScope())
+try
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Eroare la migrații: " + ex.Message);
 }
 
 // ========================
