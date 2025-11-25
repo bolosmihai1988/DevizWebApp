@@ -2,23 +2,28 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copiem fișierul csproj și restaurăm dependențele
-COPY *.csproj ./
+# Copiem fișierele de proiect
+COPY *.sln ./
+COPY DevizWebApp/*.csproj ./DevizWebApp/
+
+# Restaurăm dependențele
 RUN dotnet restore
 
-# Copiem restul codului
-COPY . ./
+# Copiem codul sursă
+COPY DevizWebApp/. ./DevizWebApp/
 
-# Publicăm proiectul direct (nu soluția)
-RUN dotnet publish DevizWebApp.csproj -c Release -o out
+# Publicăm aplicația
+RUN dotnet publish DevizWebApp/DevizWebApp.csproj -c Release -o out
 
 # Etapa 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-COPY --from=build /app/out .
+# Copiem aplicația publicată
+COPY --from=build /app/out ./
 
-EXPOSE 80
+# Expunem portul Render
+EXPOSE 10000
 
-# Numele DLL-ului trebuie să fie exact cel al proiectului tău
+# Setăm entrypoint
 ENTRYPOINT ["dotnet", "DevizWebApp.dll"]
