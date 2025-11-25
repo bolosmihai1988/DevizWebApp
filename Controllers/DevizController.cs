@@ -19,6 +19,7 @@ namespace DevizWebApp.Controllers
         }
 
         [HttpPost]
+        [IgnoreAntiforgeryToken]
         public IActionResult GeneratePDF(DevizDocumentModel model)
         {
             if (model == null)
