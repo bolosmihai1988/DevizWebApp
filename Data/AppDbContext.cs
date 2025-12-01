@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 
 namespace DevizWebApp.Data
 {
+    // DbContext principal al aplicației
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
@@ -9,17 +11,23 @@ namespace DevizWebApp.Data
         {
         }
 
-        // Tabel pentru devize
-        public DbSet<Deviz> Devize { get; set; }
+        public DbSet<MyEntity> MyEntities { get; set; }
     }
 
-    // Modelul Deviz — trebuie să existe pentru a salva în DB!
-    public class Deviz
+    // Context pentru cheile DataProtection
+    public class DataProtectionKeyContext : DbContext, IDataProtectionKeyContext
     {
-        public int Id { get; set; }  // autoincrement
-        public string Client { get; set; }
-        public string Descriere { get; set; }
-        public decimal Total { get; set; }
-        public DateTime DataCreare { get; set; } = DateTime.UtcNow;
+        public DataProtectionKeyContext(DbContextOptions<DataProtectionKeyContext> options)
+            : base(options)
+        {
+        }
+
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+    }
+
+    public class MyEntity
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
     }
 }
