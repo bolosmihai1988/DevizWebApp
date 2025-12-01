@@ -36,6 +36,29 @@ namespace DevizWebApp.Models
 
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
+        // --- Conversie către Deviz entity pentru salvarea în DB ---
+        public Deviz ToDevizEntity()
+        {
+            return new Deviz
+            {
+                NrDeviz = this.NrDeviz,
+                Firma = this.Firma ?? string.Empty,
+                CUI = this.CUI ?? string.Empty,
+                Adresa = this.Adresa ?? string.Empty,
+                Telefon = this.Telefon ?? string.Empty,
+                Data = this.Data ?? string.Empty,
+                Masina = this.Masina ?? string.Empty,
+                NrInmat = this.NrInmat ?? string.Empty,
+                KM = this.KM ?? string.Empty,
+                SerieCaroserie = this.SerieCaroserie ?? string.Empty,
+                SerieMotor = this.SerieMotor ?? string.Empty,
+                Constatare = this.Constatare ?? string.Empty,
+                LucrariConvenite = this.LucrariConvenite ?? string.Empty,
+                PieseAduseClient = this.PieseAduseClient ?? string.Empty
+            };
+        }
+
+        // --- Generare PDF ---
         public void Compose(IDocumentContainer container)
         {
             container.Page(page =>
@@ -44,7 +67,7 @@ namespace DevizWebApp.Models
                 page.Margin(2, Unit.Centimetre);
                 page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Calibri"));
 
-                // Header
+                // --- Header ---
                 page.Header().PaddingBottom(5).Row(row =>
                 {
                     row.ConstantColumn(80).Padding(0).Element(c =>
@@ -71,7 +94,7 @@ namespace DevizWebApp.Models
                     });
                 });
 
-                // Content
+                // --- Content ---
                 page.Content().PaddingVertical(8).Column(containerCol =>
                 {
                     containerCol.Item().Row(row =>
@@ -117,7 +140,7 @@ namespace DevizWebApp.Models
                     });
                 });
 
-                // Footer
+                // --- Footer ---
                 page.Footer().Column(col =>
                 {
                     col.Item().AlignCenter().Text("Toate lucrările și piesele instalate beneficiază de garanție conform legislației în vigoare.")
@@ -176,28 +199,6 @@ namespace DevizWebApp.Models
                     table.Cell().Background(Colors.Grey.Lighten3).AlignRight().Text($"{totalCuTVA:F2}").SemiBold();
                 });
             });
-        }
-
-        // Conversia în Deviz entity
-        public Deviz ToDevizEntity()
-        {
-            return new Deviz
-            {
-                NrDeviz = this.NrDeviz,
-                Firma = this.Firma,
-                CUI = this.CUI,
-                Adresa = this.Adresa,
-                Telefon = this.Telefon,
-                Data = this.Data,
-                Masina = this.Masina,
-                NrInmat = this.NrInmat,
-                KM = this.KM,
-                SerieCaroserie = this.SerieCaroserie,
-                SerieMotor = this.SerieMotor,
-                Constatare = this.Constatare,
-                LucrariConvenite = this.LucrariConvenite,
-                PieseAduseClient = this.PieseAduseClient
-            };
         }
     }
 }
