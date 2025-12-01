@@ -4,19 +4,22 @@ namespace DevizWebApp.Data
 {
     public class AppDbContext : DbContext
     {
-        // Constructor cu DbContextOptions
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)
         {
         }
 
-        // Exemplu DbSet
-        public DbSet<MyEntity> MyEntities { get; set; }
+        // Tabel pentru devize
+        public DbSet<Deviz> Devize { get; set; }
     }
 
-    public class MyEntity
+    // Modelul Deviz — trebuie să existe pentru a salva în DB!
+    public class Deviz
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        public int Id { get; set; }  // autoincrement
+        public string Client { get; set; }
+        public string Descriere { get; set; }
+        public decimal Total { get; set; }
+        public DateTime DataCreare { get; set; } = DateTime.UtcNow;
     }
 }

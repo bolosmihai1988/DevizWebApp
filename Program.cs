@@ -12,7 +12,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Adaugă servicii MVC (pentru Views și Controllers)
 builder.Services.AddControllersWithViews();
 
-// Activează QuestPDF (licența comunitară)
+// QuestPDF
 QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
