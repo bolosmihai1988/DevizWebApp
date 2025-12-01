@@ -1,16 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using DevizWebApp.Models;
-using System.Globalization;
+using DevizWebApp.Data;
+using System.Linq;
 using System.IO;
 using QuestPDF.Fluent;
-using System.Linq;
 
 namespace DevizWebApp.Controllers
 {
     public class DevizController : Controller
     {
         private const double TVA_PROCENT = 0.21;
-        private readonly string baseFolder = @"C:\DevizeWebApp\DevizePdf"; // <-- Folder principal DevizePdf
+        private readonly AppDbContext _context;
+
+        public DevizController(AppDbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
         public IActionResult Index()
@@ -25,11 +30,7 @@ namespace DevizWebApp.Controllers
             if (model == null)
                 return BadRequest("Datele trimise sunt invalide.");
 
-            // Data devizului - completare manuală dacă nu există
-            if (string.IsNullOrWhiteSpace(model.Data))
-                model.Data = "_________________";
-
-            // Calcul TVA și PretFaraTVA pentru Piese (cu cantitate)
+            // --- Calcul TVA și PretFaraTVA ---
             foreach (var piesa in model.Piese)
             {
                 double pretTotal = piesa.PretCuTVA * piesa.Cantitate;
@@ -38,45 +39,32 @@ namespace DevizWebApp.Controllers
                 piesa.PretCuTVA = Math.Round(pretTotal, 2);
             }
 
-            // Calcul TVA și PretFaraTVA pentru Manopera
             foreach (var lucrare in model.Manopera)
             {
                 lucrare.PretFaraTVA = Math.Round(lucrare.PretCuTVA / (1 + TVA_PROCENT), 2);
                 lucrare.TVA = Math.Round(lucrare.PretCuTVA - lucrare.PretFaraTVA, 2);
             }
 
-            // Organizare folder pe an/lună
-            string year = DateTime.Now.Year.ToString();
-            string month = DateTime.Now.Month.ToString("D2");
-            string folderPath = Path.Combine(baseFolder, year, month);
-            Directory.CreateDirectory(folderPath);
+            // --- Obține următorul număr deviz din DB ---
+            var lastDevizNr = _context.Devize.Max(d => (int?)d.NrDeviz) ?? 0;
+            model.NrDeviz = lastDevizNr + 1;
 
-            // Număr ordine per folder lună
-            int nrOrdine = 1;
-            var allFiles = Directory.GetFiles(folderPath, "Deviz_*.pdf");
-            if (allFiles.Length > 0)
-            {
-                nrOrdine = allFiles
-                    .Select(f => Path.GetFileName(f))
-                    .Select(f =>
-                    {
-                        var parts = f.Split('_');
-                        if (parts.Length >= 2 && int.TryParse(parts[1], out int n))
-                            return n;
-                        return 0;
-                    }).Max() + 1;
-            }
+            // --- Salvează devizul în DB ---
+            var devizEntity = model.ToDevizEntity();
+            _context.Devize.Add(devizEntity);
+            _context.SaveChanges();
 
-            model.NrDeviz = nrOrdine;
+            // --- Generare PDF ---
+            string tempFolder = Path.Combine(Path.GetTempPath(), "DevizePdf");
+            Directory.CreateDirectory(tempFolder);
 
             string safeFirma = string.Concat(model.Firma.Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
-            string fileName = $"Deviz_{nrOrdine:D4}_{safeFirma}.pdf";
-            string filePath = Path.Combine(folderPath, fileName);
+            string fileName = $"Deviz_{model.NrDeviz:D4}_{safeFirma}.pdf";
+            string filePath = Path.Combine(tempFolder, fileName);
 
             try
             {
                 model.GeneratePdf(filePath);
-
                 byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
                 return File(fileBytes, "application/pdf", fileName);
             }

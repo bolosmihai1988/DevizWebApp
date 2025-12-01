@@ -177,5 +177,27 @@ namespace DevizWebApp.Models
                 });
             });
         }
+
+        // Conversia în Deviz entity
+        public Deviz ToDevizEntity()
+        {
+            return new Deviz
+            {
+                NrDeviz = this.NrDeviz,
+                Firma = this.Firma,
+                CUI = this.CUI,
+                Adresa = this.Adresa,
+                Telefon = this.Telefon,
+                Data = this.Data,
+                Masina = this.Masina,
+                NrInmat = this.NrInmat,
+                KM = this.KM,
+                SerieCaroserie = this.SerieCaroserie,
+                SerieMotor = this.SerieMotor,
+                Constatare = this.Constatare,
+                LucrariConvenite = this.LucrariConvenite,
+                PieseAduseClient = this.PieseAduseClient
+            };
+        }
     }
 }
