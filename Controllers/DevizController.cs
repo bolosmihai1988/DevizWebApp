@@ -1,17 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using DevizWebApp.Models;
-using System.Globalization;
-using System.IO;
-using System.Linq;
+using DevizWebApp.Data;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using System.IO;
+using System.Linq;
 
 namespace DevizWebApp.Controllers
 {
     public class DevizController : Controller
     {
-        private const double TVA_PROCENT = 0.21;
-        private readonly string baseFolder = @"C:\DevizeWebApp\DevizePdf"; // Folder local (poți schimba pe Render)
+        private readonly AppDbContext _db;
+
+        public DevizController(AppDbContext db)
+        {
+            _db = db;
+        }
 
         [HttpGet]
         public IActionResult Index()
@@ -24,69 +28,47 @@ namespace DevizWebApp.Controllers
         public IActionResult GeneratePDF(DevizDocumentModel model)
         {
             if (model == null)
-                return BadRequest("Datele trimise sunt invalide.");
+                return BadRequest();
 
-            // Completare manuală Data dacă nu există
-            if (string.IsNullOrWhiteSpace(model.Data))
-                model.Data = "_________________";
+            // Nr deviz continuu din DB
+            int nrDeviz = (_db.Devize.Any() ? _db.Devize.Max(x => x.NrDeviz) : 0) + 1;
+            model.NrDeviz = nrDeviz;
 
-            // Calcul TVA și PretFaraTVA pentru Piese
-            foreach (var piesa in model.Piese)
-            {
-                double pretTotal = piesa.PretCuTVA * piesa.Cantitate;
-                piesa.PretFaraTVA = Math.Round(pretTotal / (1 + TVA_PROCENT), 2);
-                piesa.TVA = Math.Round(pretTotal - piesa.PretFaraTVA, 2);
-                piesa.PretCuTVA = Math.Round(pretTotal, 2);
-            }
+            // SALVARE IN DB (VARIANTA A)
+            var deviz = model.ToDevizEntity();
+            deviz.NrDeviz = nrDeviz;
 
-            // Calcul TVA și PretFaraTVA pentru Manopera
-            foreach (var lucrare in model.Manopera)
-            {
-                lucrare.PretFaraTVA = Math.Round(lucrare.PretCuTVA / (1 + TVA_PROCENT), 2);
-                lucrare.TVA = Math.Round(lucrare.PretCuTVA - lucrare.PretFaraTVA, 2);
-            }
+            _db.Devize.Add(deviz);
+            _db.SaveChanges();
 
-            // Organizare folder pe an/lună
-            string year = DateTime.Now.Year.ToString();
-            string month = DateTime.Now.Month.ToString("D2");
-            string folderPath = Path.Combine(baseFolder, year, month);
-            Directory.CreateDirectory(folderPath);
+            // PDF temporar
+            string fileName = $"Deviz_{nrDeviz:D4}.pdf";
+            string tempPath = Path.Combine(Path.GetTempPath(), fileName);
 
-            // Număr ordine per folder lună
-            int nrOrdine = 1;
-            var allFiles = Directory.GetFiles(folderPath, "Deviz_*.pdf");
-            if (allFiles.Length > 0)
-            {
-                nrOrdine = allFiles
-                    .Select(f => Path.GetFileName(f))
-                    .Select(f =>
-                    {
-                        var parts = f.Split('_');
-                        if (parts.Length >= 2 && int.TryParse(parts[1], out int n))
-                            return n;
-                        return 0;
-                    }).Max() + 1;
-            }
+            (model as IDocument).GeneratePdf(tempPath);
 
-            model.NrDeviz = nrOrdine;
+            byte[] fileBytes = System.IO.File.ReadAllBytes(tempPath);
+            return File(fileBytes, "application/pdf", fileName);
+        }
 
-            string safeFirma = string.Concat(model.Firma.Where(c => !Path.GetInvalidFileNameChars().Contains(c)));
-            string fileName = $"Deviz_{nrOrdine:D4}_{safeFirma}.pdf";
-            string filePath = Path.Combine(folderPath, fileName);
+        // ISTORIC
+        public IActionResult Istoric()
+        {
+            var lista = _db.Devize
+                .OrderByDescending(x => x.Id)
+                .ToList();
 
-            try
-            {
-                // --- QUESTPDF 2023+ GENERARE PDF ---
-                var document = model as IDocument;
-                document.GeneratePdf(filePath);
+            return View(lista);
+        }
 
-                byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
-                return File(fileBytes, "application/pdf", fileName);
-            }
-            catch
-            {
-                return StatusCode(500, "Eroare la generarea PDF-ului.");
-            }
+        // DETALII
+        public IActionResult Detalii(int id)
+        {
+            var deviz = _db.Devize.FirstOrDefault(x => x.Id == id);
+            if (deviz == null)
+                return NotFound();
+
+            return View(deviz);
         }
     }
 }

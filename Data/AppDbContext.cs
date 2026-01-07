@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using DevizWebApp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevizWebApp.Data
 {
@@ -9,16 +9,17 @@ namespace DevizWebApp.Data
             : base(options)
         { }
 
-        // Tabele
         public DbSet<Deviz> Devize { get; set; }
-        // Păstrează orice alte DbSet-uri existente
-        public DbSet<MyEntity> MyEntities { get; set; }
-    }
 
-    // Clasa MyEntity dacă o mai folosești
-    public class MyEntity
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Deviz>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.HasIndex(x => x.NrDeviz).IsUnique();
+            });
+        }
     }
 }

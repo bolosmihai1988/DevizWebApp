@@ -1,30 +1,44 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DevizWebApp.Models
+namespace DevizWebApp.Models;
+
+public class Deviz
 {
-    public class Deviz
-    {
-        [Key]
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public int NrDeviz { get; set; }
+    public int NrDeviz { get; set; }
 
-        public string Firma { get; set; } = string.Empty;
-        public string CUI { get; set; } = string.Empty;
-        public string Adresa { get; set; } = string.Empty;
-        public string Telefon { get; set; } = string.Empty;
-        public string Data { get; set; } = string.Empty;
+    [MaxLength(200)]
+    public string Firma { get; set; } = "";
 
-        public string Masina { get; set; } = string.Empty;
-        public string NrInmat { get; set; } = string.Empty;
-        public string KM { get; set; } = string.Empty;
-        public string SerieCaroserie { get; set; } = string.Empty;
-        public string SerieMotor { get; set; } = string.Empty;
+    [MaxLength(50)]
+    public string CUI { get; set; } = "";
 
-        public string Constatare { get; set; } = string.Empty;
-        public string LucrariConvenite { get; set; } = string.Empty;
-        public string PieseAduseClient { get; set; } = string.Empty;
+    [MaxLength(300)]
+    public string Adresa { get; set; } = "";
 
-        // Optional: poți adăuga câmpuri JSON pentru Piese și Manopera dacă vrei să le salvezi în DB
-    }
+    [MaxLength(50)]
+    public string Telefon { get; set; } = "";
+
+    [MaxLength(50)]
+    public string Data { get; set; } = "";
+
+    [MaxLength(200)]
+    public string Masina { get; set; } = "";
+
+    [MaxLength(50)]
+    public string NrInmat { get; set; } = "";
+
+    [MaxLength(50)]
+    public string KM { get; set; } = "";
+
+    [MaxLength(50)]
+    public string SerieCaroserie { get; set; } = "";
+
+    [MaxLength(50)]
+    public string SerieMotor { get; set; } = "";
+
+    public string Constatare { get; set; } = "";
+    public string LucrariConvenite { get; set; } = "";
+    public string PieseAduseClient { get; set; } = "";
 }

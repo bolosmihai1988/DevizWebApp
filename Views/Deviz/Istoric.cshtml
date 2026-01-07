@@ -1,0 +1,33 @@
+@model List<DevizWebApp.Models.Deviz>
+
+<h2>Istoric devize</h2>
+
+<p>
+    <a href="/Deviz">Deviz nou</a>
+</p>
+
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Nr</th>
+            <th>Data</th>
+            <th>Firmă</th>
+            <th>Mașină</th>
+            <th>Nr. înmat</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var d in Model)
+    {
+        <tr>
+            <td>@d.NrDeviz.ToString("D4")</td>
+            <td>@d.Data</td>
+            <td>@d.Firma</td>
+            <td>@d.Masina</td>
+            <td>@d.NrInmat</td>
+            <td><a href="/Deviz/Detalii/@d.Id">Detalii</a></td>
+        </tr>
+    }
+    </tbody>
+</table>

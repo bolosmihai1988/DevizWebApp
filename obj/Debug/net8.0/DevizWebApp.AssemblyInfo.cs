@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DevizWebApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4543be248d57bb538c591650cd8cb291788398d7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+be615d2f970c9ce5590a38ed2dfa26371fbdbcb4")]
 [assembly: System.Reflection.AssemblyProductAttribute("DevizWebApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DevizWebApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

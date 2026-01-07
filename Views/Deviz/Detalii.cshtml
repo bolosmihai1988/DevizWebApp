@@ -1,0 +1,27 @@
+@model DevizWebApp.Models.Deviz
+
+<h2>Deviz #@Model.NrDeviz.ToString("D4")</h2>
+
+<ul>
+    <li><b>Firmă:</b> @Model.Firma</li>
+    <li><b>CUI:</b> @Model.CUI</li>
+    <li><b>Adresă:</b> @Model.Adresa</li>
+    <li><b>Telefon:</b> @Model.Telefon</li>
+    <li><b>Data:</b> @Model.Data</li>
+    <li><b>Mașină:</b> @Model.Masina</li>
+    <li><b>Nr. înmat:</b> @Model.NrInmat</li>
+    <li><b>KM:</b> @Model.KM</li>
+    <li><b>Serie caroserie:</b> @Model.SerieCaroserie</li>
+    <li><b>Serie motor:</b> @Model.SerieMotor</li>
+</ul>
+
+<h3>Constatare</h3>
+<p>@Model.Constatare</p>
+
+<h3>Lucrări convenite</h3>
+<p>@Model.LucrariConvenite</p>
+
+<h3>Piese aduse de client</h3>
+<p>@Model.PieseAduseClient</p>
+
+<p><a href="/Deviz/Istoric">Înapoi la istoric</a></p>
