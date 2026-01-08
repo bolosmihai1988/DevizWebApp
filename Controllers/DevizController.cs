@@ -29,10 +29,6 @@ namespace DevizWebApp.Controllers
             if (model == null)
                 return BadRequest("Date invalide.");
 
-            // Data dacă e goală
-            if (string.IsNullOrWhiteSpace(model.Data))
-                model.Data = DateTime.Now.ToString("dd.MM.yyyy");
-
             // ✅ Nr deviz continuu din DB
             int nrDeviz = (_db.Devize.Any() ? _db.Devize.Max(d => d.NrDeviz) : 0) + 1;
             model.NrDeviz = nrDeviz;

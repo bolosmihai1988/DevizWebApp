@@ -1,89 +1,168 @@
 @model DevizWebApp.Models.DevizDocumentModel
-
 @{
-    ViewData["Title"] = "Creează deviz";
+    ViewData["Title"] = "Deviz nou";
 }
 
-<div style="display:flex; gap:12px; margin-bottom:15px;">
-    <a class="btn btn-secondary"
-       asp-controller="Deviz"
-       asp-action="Istoric">
-        📜 Istoric devize & facturi
-    </a>
+<div style="max-width:1100px;margin:auto">
 
-    <a class="btn btn-success"
-       asp-controller="Factura"
-       asp-action="CreatePiese">
-        ➕ Factură doar piese
-    </a>
-</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0;">
+        <h2 style="margin:0">🛠 Deviz nou</h2>
 
-<h2>Creează deviz</h2>
+        <div style="display:flex;gap:10px">
+            <a class="btn btn-outline-secondary"
+               asp-controller="Deviz"
+               asp-action="Istoric">
+                📜 Istoric
+            </a>
 
-<form asp-action="GeneratePDF" method="post">
-    @Html.AntiForgeryToken()
-
-    <div class="row">
-        <div class="col-md-6">
-            <h4>Date client</h4>
-            <input asp-for="Firma" class="form-control mb-2" placeholder="Firmă / Client" />
-            <input asp-for="CUI" class="form-control mb-2" placeholder="CUI" />
-            <input asp-for="Adresa" class="form-control mb-2" placeholder="Adresă" />
-            <input asp-for="Telefon" class="form-control mb-2" placeholder="Telefon" />
-        </div>
-
-        <div class="col-md-6">
-            <h4>Date mașină</h4>
-            <input asp-for="Masina" class="form-control mb-2" placeholder="Mașină" />
-            <input asp-for="NrInmat" class="form-control mb-2" placeholder="Nr. înmatriculare" />
-            <input asp-for="KM" class="form-control mb-2" placeholder="KM" />
-            <input asp-for="SerieCaroserie" class="form-control mb-2" placeholder="Serie caroserie" />
-            <input asp-for="SerieMotor" class="form-control mb-2" placeholder="Serie motor" />
+            <a class="btn btn-outline-success"
+               asp-controller="Factura"
+               asp-action="CreatePiese">
+                ➕ Factură piese
+            </a>
         </div>
     </div>
 
-    <h4 class="mt-3">Constatare</h4>
-    <textarea asp-for="Constatare" class="form-control mb-2"></textarea>
+    <div style="background:white;padding:22px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.08)">
 
-    <h4>Lucrări convenite</h4>
-    <textarea asp-for="LucrariConvenite" class="form-control mb-2"></textarea>
+<form method="post" asp-action="GeneratePDF">
 
-    <h4>Piese aduse de client</h4>
-    <textarea asp-for="PieseAduseClient" class="form-control mb-3"></textarea>
+<h5 class="text-primary">Client</h5>
+<div class="row g-3">
+    <div class="col-md-3">
+        <label>Data</label>
+        <input asp-for="Data" class="form-control" placeholder="dd.MM.yyyy" />
+    </div>
+    <div class="col-md-6">
+        <label>Firmă</label>
+        <input asp-for="Firma" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>Telefon</label>
+        <input asp-for="Telefon" class="form-control" />
+    </div>
+    <div class="col-md-12">
+        <label>Adresă</label>
+        <input asp-for="Adresa" class="form-control" />
+    </div>
+</div>
 
-    <h4>Piese</h4>
-    <table class="table">
-        <thead>
-            <tr><th>Denumire</th><th>Cantitate</th><th>Preț</th></tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Piese.Count; i++)
-            {
-                <tr>
-                    <td><input asp-for="Piese[i].Denumire" class="form-control" /></td>
-                    <td><input asp-for="Piese[i].Cantitate" class="form-control" /></td>
-                    <td><input asp-for="Piese[i].PretUnitar" class="form-control" /></td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<hr/>
 
-    <h4>Manoperă</h4>
-    <table class="table">
-        <thead>
-            <tr><th>Denumire</th><th>Ore</th><th>Preț/oră</th></tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Manopera.Count; i++)
-            {
-                <tr>
-                    <td><input asp-for="Manopera[i].Denumire" class="form-control" /></td>
-                    <td><input asp-for="Manopera[i].Cantitate" class="form-control" /></td>
-                    <td><input asp-for="Manopera[i].PretUnitar" class="form-control" /></td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<h5 class="text-primary">Mașină</h5>
+<div class="row g-3">
+    <div class="col-md-6">
+        <label>Mașină</label>
+        <input asp-for="Masina" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>Nr. înmatriculare</label>
+        <input asp-for="NrInmat" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>KM</label>
+        <input asp-for="KM" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label>Serie caroserie</label>
+        <input asp-for="SerieCaroserie" class="form-control" />
+    </div>
+    <div class="col-md-6">
+        <label>Serie motor</label>
+        <input asp-for="SerieMotor" class="form-control" />
+    </div>
+</div>
 
-    <button type="submit" class="btn btn-primary btn-lg mt-3">Generează deviz PDF</button>
+<hr/>
+
+<h5 class="text-primary">Detalii</h5>
+<div class="mb-2">
+    <label>Constatare</label>
+    <textarea asp-for="Constatare" class="form-control" rows="2"></textarea>
+</div>
+<div class="mb-2">
+    <label>Lucrări convenite</label>
+    <textarea asp-for="LucrariConvenite" class="form-control" rows="2"></textarea>
+</div>
+<div class="mb-2">
+    <label>Piese aduse de client</label>
+    <textarea asp-for="PieseAduseClient" class="form-control" rows="2"></textarea>
+</div>
+
+<hr/>
+
+<div style="display:flex;justify-content:space-between;align-items:center">
+    <h5 class="text-primary" style="margin:0">Piese</h5>
+    <button type="button" class="btn btn-sm btn-secondary" onclick="addPiesa()">➕ Adaugă piesă</button>
+</div>
+
+<table class="table table-bordered mt-2" id="pieseTable">
+<thead>
+<tr>
+<th>Denumire</th><th style="width:120px">Cant.</th><th style="width:160px">Preț</th><th style="width:60px"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><input name="Piese[0].Denumire" class="form-control"/></td>
+<td><input name="Piese[0].Cantitate" type="number" step="0.01" value="1" class="form-control"/></td>
+<td><input name="Piese[0].PretUnitar" type="number" step="0.01" class="form-control"/></td>
+<td class="text-center"><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
+</tr>
+</tbody>
+</table>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
+    <h5 class="text-primary" style="margin:0">Manoperă</h5>
+    <button type="button" class="btn btn-sm btn-secondary" onclick="addManopera()">➕ Adaugă manoperă</button>
+</div>
+
+<table class="table table-bordered mt-2" id="manoperaTable">
+<thead>
+<tr>
+<th>Denumire</th><th style="width:120px">Ore</th><th style="width:160px">Preț/oră</th><th style="width:60px"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><input name="Manopera[0].Denumire" class="form-control"/></td>
+<td><input name="Manopera[0].Cantitate" type="number" step="0.01" value="1" class="form-control"/></td>
+<td><input name="Manopera[0].PretUnitar" type="number" step="0.01" class="form-control"/></td>
+<td class="text-center"><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
+</tr>
+</tbody>
+</table>
+
+<div class="text-end mt-4">
+    <button class="btn btn-primary btn-lg">📄 Generează deviz PDF</button>
+</div>
+
 </form>
+</div>
+</div>
+
+<script>
+let pieseIndex = 1, manoperaIndex = 1;
+function addPiesa(){
+document.querySelector("#pieseTable tbody").insertAdjacentHTML("beforeend",
+`<tr>
+<td><input name="Piese[${pieseIndex}].Denumire" class="form-control"/></td>
+<td><input name="Piese[${pieseIndex}].Cantitate" type="number" step="0.01" value="1" class="form-control"/></td>
+<td><input name="Piese[${pieseIndex}].PretUnitar" type="number" step="0.01" class="form-control"/></td>
+<td class="text-center"><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
+</tr>`); pieseIndex++;}
+
+function addManopera(){
+document.querySelector("#manoperaTable tbody").insertAdjacentHTML("beforeend",
+`<tr>
+<td><input name="Manopera[${manoperaIndex}].Denumire" class="form-control"/></td>
+<td><input name="Manopera[${manoperaIndex}].Cantitate" type="number" step="0.01" value="1" class="form-control"/></td>
+<td><input name="Manopera[${manoperaIndex}].PretUnitar" type="number" step="0.01" class="form-control"/></td>
+<td class="text-center"><button type="button" class="btn btn-sm btn-danger" onclick="removeRow(this)">✖</button></td>
+</tr>`); manoperaIndex++;}
+
+function removeRow(btn){
+const tbody = btn.closest("tbody"); btn.closest("tr").remove();
+if(tbody.children.length===0){ if(tbody.parentElement.id==="pieseTable") addPiesa(); else addManopera(); }
+}
+</script>
