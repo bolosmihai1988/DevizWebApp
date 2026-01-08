@@ -32,6 +32,8 @@ namespace DevizWebApp.Models
         public List<LinieDeviz> Piese { get; set; } = new List<LinieDeviz>();
         public List<LinieDeviz> Manopera { get; set; } = new List<LinieDeviz>();
 
+        // IMPORTANT: pe QuestPDF/ASP.NET în production e posibil ca AppContext.BaseDirectory să fie altundeva,
+        // dar îl păstrăm ca în varianta ta + fallback-ul tău deja e ok.
         private string LogoPath => Path.Combine(AppContext.BaseDirectory, "wwwroot", "logo.png");
 
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -47,11 +49,16 @@ namespace DevizWebApp.Models
                 // Header
                 page.Header().PaddingBottom(5).Row(row =>
                 {
-                    row.ConstantColumn(80).Padding(0).Element(c =>
+                    // MOD 1: ConstantColumn -> ConstantItem
+                    row.ConstantItem(80).Padding(0).Element(c =>
                     {
                         if (File.Exists(LogoPath))
-                            c.Image(LogoPath, ImageScaling.FitArea);
+                        {
+                            // MOD 2: Image(path, scaling) -> Image(path) (compatibil cu QuestPDF nou)
+                            c.Image(LogoPath);
+                        }
                         else
+                        {
                             c.AlignCenter().Padding(5)
                              .Background(Colors.Blue.Lighten3)
                              .Column(col =>
@@ -59,9 +66,11 @@ namespace DevizWebApp.Models
                                  col.Item().AlignCenter().Text("BLS").FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
                                  col.Item().AlignCenter().Text("SERVICE").FontSize(10).SemiBold();
                              });
+                        }
                     });
 
-                    row.RelativeColumn().Column(col =>
+                    // MOD 1: RelativeColumn -> RelativeItem
+                    row.RelativeItem().Column(col =>
                     {
                         col.Item().Text(NumeService)
                             .FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
@@ -76,7 +85,8 @@ namespace DevizWebApp.Models
                 {
                     containerCol.Item().Row(row =>
                     {
-                        row.RelativeColumn().Column(c =>
+                        // MOD 1: RelativeColumn -> RelativeItem
+                        row.RelativeItem().Column(c =>
                         {
                             c.Item().Text($"Firmă: {Firma}");
                             if (!string.IsNullOrWhiteSpace(CUI)) c.Item().Text($"CUI: {CUI}");
@@ -84,7 +94,8 @@ namespace DevizWebApp.Models
                             c.Item().Text($"Telefon: {Telefon}");
                         });
 
-                        row.RelativeColumn().AlignRight().Column(c =>
+                        // MOD 1: RelativeColumn -> RelativeItem
+                        row.RelativeItem().AlignRight().Column(c =>
                         {
                             c.Item().Text($"Mașină: {Masina}");
                             c.Item().Text($"Nr. înmatriculare: {NrInmat}");
@@ -103,25 +114,37 @@ namespace DevizWebApp.Models
                     if (Manopera.Count > 0)
                         containerCol.Item().PaddingTop(10).Element(e => GenerateStyledTable(e, "MANOPERĂ", Manopera));
 
-                    double totalFaraTVA = Piese.Sum(x => x.PretFaraTVA * x.Cantitate) + Manopera.Sum(x => x.PretFaraTVA);
-                    double totalTVA = Piese.Sum(x => x.TVA * x.Cantitate) + Manopera.Sum(x => x.TVA);
-                    double totalCuTVA = Piese.Sum(x => x.PretCuTVA * x.Cantitate) + Manopera.Sum(x => x.PretCuTVA);
+                    // MOD 3: totaluri corecte și consistente (și pentru manoperă se ține cont de Cantitate)
+                    double totalFaraTVA =
+                        Piese.Sum(x => x.PretFaraTVA * x.Cantitate) +
+                        Manopera.Sum(x => x.PretFaraTVA * x.Cantitate);
 
-                    containerCol.Item().PaddingTop(12).Text($"TOTAL GENERAL: Fără TVA {totalFaraTVA:F2} | TVA {totalTVA:F2} | Cu TVA {totalCuTVA:F2}")
+                    double totalTVA =
+                        Piese.Sum(x => x.TVA * x.Cantitate) +
+                        Manopera.Sum(x => x.TVA * x.Cantitate);
+
+                    double totalCuTVA =
+                        Piese.Sum(x => x.PretCuTVA * x.Cantitate) +
+                        Manopera.Sum(x => x.PretCuTVA * x.Cantitate);
+
+                    containerCol.Item().PaddingTop(12)
+                        .Text($"TOTAL GENERAL: Fără TVA {totalFaraTVA:F2} | TVA {totalTVA:F2} | Cu TVA {totalCuTVA:F2}")
                         .FontSize(13).SemiBold().FontColor(Colors.Blue.Darken2);
 
                     containerCol.Item().PaddingTop(20).Row(r =>
                     {
-                        r.RelativeColumn().Text("Semnătura client: ____________________");
-                        r.RelativeColumn().Text("Semnătura operator: ____________________");
+                        // MOD 1: RelativeColumn -> RelativeItem
+                        r.RelativeItem().Text("Semnătura client: ____________________");
+                        r.RelativeItem().Text("Semnătura operator: ____________________");
                     });
                 });
 
                 // Footer
                 page.Footer().Column(col =>
                 {
-                    col.Item().AlignCenter().Text("Toate lucrările și piesele instalate beneficiază de garanție conform legislației în vigoare.")
-                       .FontSize(9).Italic().FontColor(Colors.Grey.Darken1);
+                    col.Item().AlignCenter()
+                        .Text("Toate lucrările și piesele instalate beneficiază de garanție conform legislației în vigoare.")
+                        .FontSize(9).Italic().FontColor(Colors.Grey.Darken1);
 
                     col.Item().AlignCenter().Text(x =>
                     {
@@ -140,6 +163,7 @@ namespace DevizWebApp.Models
             container.Column(col =>
             {
                 col.Item().Text(titlu).FontSize(14).SemiBold().FontColor(Colors.Blue.Darken1);
+
                 col.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>

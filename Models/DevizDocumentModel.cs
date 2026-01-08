@@ -9,7 +9,7 @@ namespace DevizWebApp.Models
 {
     public class DevizDocumentModel : IDocument
     {
-        public string NumeService { get; set; } = "Sc Bls Service Automobile Srl";
+        public string NumeService { get; set; } = "SC Bolos Service Auto SRL";
         public int NrDeviz { get; set; }
 
         public string Firma { get; set; } = string.Empty;
@@ -29,32 +29,50 @@ namespace DevizWebApp.Models
         public string LucrariConvenite { get; set; } = string.Empty;
         public string PieseAduseClient { get; set; } = string.Empty;
 
-        public List<LinieDeviz> Piese { get; set; } = new List<LinieDeviz>();
-        public List<LinieDeviz> Manopera { get; set; } = new List<LinieDeviz>();
+        public List<LinieDeviz> Piese { get; set; } = new();
+        public List<LinieDeviz> Manopera { get; set; } = new();
 
         private string LogoPath => Path.Combine(AppContext.BaseDirectory, "logo.png");
 
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
-        public Deviz ToDevizEntity()
+        // ✅ Ajută la DOWNLOAD (reconstruim modelul din DB)
+        public void LoadFromDeviz(Deviz deviz, List<DevizItem> items)
         {
-            return new Deviz
-            {
-                NrDeviz = this.NrDeviz,
-                Firma = this.Firma ?? string.Empty,
-                CUI = this.CUI ?? string.Empty,
-                Adresa = this.Adresa ?? string.Empty,
-                Telefon = this.Telefon ?? string.Empty,
-                Data = this.Data ?? string.Empty,
-                Masina = this.Masina ?? string.Empty,
-                NrInmat = this.NrInmat ?? string.Empty,
-                KM = this.KM ?? string.Empty,
-                SerieCaroserie = this.SerieCaroserie ?? string.Empty,
-                SerieMotor = this.SerieMotor ?? string.Empty,
-                Constatare = this.Constatare ?? string.Empty,
-                LucrariConvenite = this.LucrariConvenite ?? string.Empty,
-                PieseAduseClient = this.PieseAduseClient ?? string.Empty
-            };
+            NrDeviz = deviz.NrDeviz;
+            Firma = deviz.Firma;
+            CUI = deviz.CUI;
+            Adresa = deviz.Adresa;
+            Telefon = deviz.Telefon;
+            Data = deviz.Data;
+
+            Masina = deviz.Masina;
+            NrInmat = deviz.NrInmat;
+            KM = deviz.KM;
+            SerieCaroserie = deviz.SerieCaroserie;
+            SerieMotor = deviz.SerieMotor;
+
+            Constatare = deviz.Constatare;
+            LucrariConvenite = deviz.LucrariConvenite;
+            PieseAduseClient = deviz.PieseAduseClient;
+
+            Piese = items
+                .Where(i => i.Tip == "piesa")
+                .Select(i => new LinieDeviz
+                {
+                    Denumire = i.Denumire,
+                    Cantitate = (double)i.Cantitate,
+                    PretUnitar = (double)i.PretUnitar
+                }).ToList();
+
+            Manopera = items
+                .Where(i => i.Tip == "manopera")
+                .Select(i => new LinieDeviz
+                {
+                    Denumire = i.Denumire,
+                    Cantitate = (double)i.Cantitate,
+                    PretUnitar = (double)i.PretUnitar
+                }).ToList();
         }
 
         public void Compose(IDocumentContainer container)
@@ -65,7 +83,6 @@ namespace DevizWebApp.Models
                 page.Margin(2, Unit.Centimetre);
                 page.DefaultTextStyle(x => x.FontSize(11).FontFamily("Calibri"));
 
-                // Header
                 page.Header().PaddingBottom(5).Row(row =>
                 {
                     row.ConstantItem(80).Padding(0).Element(c =>
@@ -89,10 +106,10 @@ namespace DevizWebApp.Models
 
                         col.Item().AlignRight().Text($"DEVIZ NR.: {NrDeviz:D4}").FontSize(12).SemiBold();
                         col.Item().AlignRight().Text($"DATA: {Data}").FontSize(12).SemiBold();
+                        col.Item().AlignRight().Text("Prețuri fără TVA").FontSize(10).FontColor(Colors.Grey.Darken1);
                     });
                 });
 
-                // Content
                 page.Content().PaddingVertical(8).Column(containerCol =>
                 {
                     containerCol.Item().Row(row =>
@@ -119,16 +136,17 @@ namespace DevizWebApp.Models
                     });
 
                     if (Piese.Count > 0)
-                        containerCol.Item().PaddingTop(10).Element(e => GenerateStyledTable(e, "PIESE", Piese));
+                        containerCol.Item().PaddingTop(10).Element(e => GenerateTableFaraTVA(e, "PIESE", Piese));
 
                     if (Manopera.Count > 0)
-                        containerCol.Item().PaddingTop(10).Element(e => GenerateStyledTable(e, "MANOPERĂ", Manopera));
+                        containerCol.Item().PaddingTop(10).Element(e => GenerateTableFaraTVA(e, "MANOPERĂ", Manopera));
 
-                    double totalFaraTVA = Piese.Sum(x => x.PretFaraTVA) + Manopera.Sum(x => x.PretFaraTVA);
-                    double totalTVA = Piese.Sum(x => x.TVA) + Manopera.Sum(x => x.TVA);
-                    double totalCuTVA = Piese.Sum(x => x.PretCuTVA) + Manopera.Sum(x => x.PretCuTVA);
+                    double totalPiese = Piese.Sum(x => x.Total);
+                    double totalManopera = Manopera.Sum(x => x.Total);
+                    double totalGeneral = totalPiese + totalManopera;
 
-                    containerCol.Item().PaddingTop(12).Text($"TOTAL GENERAL: Fără TVA {totalFaraTVA:F2} | TVA {totalTVA:F2} | Cu TVA {totalCuTVA:F2}")
+                    containerCol.Item().PaddingTop(12)
+                        .Text($"TOTAL GENERAL (fără TVA): {totalGeneral:F2} RON")
                         .FontSize(13).SemiBold().FontColor(Colors.Blue.Darken2);
 
                     containerCol.Item().PaddingTop(20).Row(r =>
@@ -138,7 +156,6 @@ namespace DevizWebApp.Models
                     });
                 });
 
-                // Footer
                 page.Footer().Column(col =>
                 {
                     col.Item().AlignCenter().Text("Toate lucrările și piesele instalate beneficiază de garanție conform legislației în vigoare.")
@@ -156,58 +173,44 @@ namespace DevizWebApp.Models
             });
         }
 
-        private void GenerateStyledTable(IContainer container, string titlu, List<LinieDeviz> linii)
+        private void GenerateTableFaraTVA(IContainer container, string titlu, List<LinieDeviz> linii)
         {
             container.Column(col =>
             {
                 col.Item().Text(titlu).FontSize(14).SemiBold().FontColor(Colors.Blue.Darken1);
+
                 col.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.RelativeColumn(); // Denumire
-                        columns.ConstantColumn(50); // Pret/buc
-                        columns.ConstantColumn(60); // Fara TVA
-                        columns.ConstantColumn(60); // TVA
-                        columns.ConstantColumn(60); // Cu TVA
+                        columns.RelativeColumn();    // Denumire
+                        columns.ConstantColumn(60);  // Cant
+                        columns.ConstantColumn(80);  // Pret unitar
+                        columns.ConstantColumn(80);  // Total
                     });
 
                     table.Header(header =>
                     {
                         header.Cell().Background(Colors.Grey.Lighten3).Padding(3).Text("Denumire").SemiBold();
-                        if (titlu == "PIESE")
-                            header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("Pret/Buc").SemiBold();
-                        else
-                            header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("").SemiBold();
-
-                        header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("Fără TVA").SemiBold();
-                        header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("TVA").SemiBold();
-                        header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("Cu TVA").SemiBold();
+                        header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("Cant.").SemiBold();
+                        header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("Preț unitar").SemiBold();
+                        header.Cell().Background(Colors.Grey.Lighten3).Padding(3).AlignRight().Text("Total").SemiBold();
                     });
 
                     foreach (var l in linii)
                     {
                         table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Text(l.Denumire ?? "");
-                        if (titlu == "PIESE")
-                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text($"{(l.Cantitate > 0 ? l.PretCuTVA / l.Cantitate : l.PretCuTVA):F2}");
-                        else
-                            table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text("");
-
-                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text($"{l.PretFaraTVA:F2}");
-                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text($"{l.TVA:F2}");
-                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text($"{l.PretCuTVA:F2}");
+                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text($"{l.Cantitate:0.##}");
+                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text($"{l.PretUnitar:F2}");
+                        table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).AlignRight().Text($"{l.Total:F2}");
                     }
 
-                    double totalFaraTVA = linii.Sum(x => x.PretFaraTVA);
-                    double totalTVA = linii.Sum(x => x.TVA);
-                    double totalCuTVA = linii.Sum(x => x.PretCuTVA);
+                    double total = linii.Sum(x => x.Total);
 
                     table.Cell().Background(Colors.Grey.Lighten3).Text("TOTAL").SemiBold();
-                    if (titlu == "PIESE")
-                        table.Cell().Background(Colors.Grey.Lighten3).Text(""); // coloana Pret/Buc total
-                    table.Cell().Background(Colors.Grey.Lighten3).AlignRight().Text($"{totalFaraTVA:F2}").SemiBold();
-                    table.Cell().Background(Colors.Grey.Lighten3).AlignRight().Text($"{totalTVA:F2}").SemiBold();
-                    table.Cell().Background(Colors.Grey.Lighten3).AlignRight().Text($"{totalCuTVA:F2}").SemiBold();
+                    table.Cell().Background(Colors.Grey.Lighten3).Text("");
+                    table.Cell().Background(Colors.Grey.Lighten3).Text("");
+                    table.Cell().Background(Colors.Grey.Lighten3).AlignRight().Text($"{total:F2}").SemiBold();
                 });
             });
         }

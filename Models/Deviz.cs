@@ -41,4 +41,7 @@ public class Deviz
     public string Constatare { get; set; } = "";
     public string LucrariConvenite { get; set; } = "";
     public string PieseAduseClient { get; set; } = "";
+
+    // Linii salvate (piese + manopera)
+    public List<DevizItem> Items { get; set; } = new();
 }

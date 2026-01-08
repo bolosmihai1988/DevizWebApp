@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
 using QuestPDF.Infrastructure;
 using QuestPDF.Fluent;
+using DevizWebApp.Security;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,8 @@ builder.Services.AddControllersWithViews();
 QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
+app.UseMiddleware<BasicAuthMiddleware>();
+
 
 // --- Aplică migrațiile la startup ---
 using (var scope = app.Services.CreateScope())

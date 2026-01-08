@@ -2,16 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DevizWebApp.Models;
 
-public class DevizItem
+public class FacturaItem
 {
     public int Id { get; set; }
 
-    public int DevizId { get; set; }
-    public Deviz? Deviz { get; set; }
-
-    // "piesa" sau "manopera"
-    [MaxLength(20)]
-    public string Tip { get; set; } = "piesa";
+    public int FacturaId { get; set; }
+    public Factura? Factura { get; set; }
 
     [MaxLength(500)]
     public string Denumire { get; set; } = "";
