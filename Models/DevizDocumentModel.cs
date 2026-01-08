@@ -105,7 +105,8 @@ namespace DevizWebApp.Models
                             .FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
 
                         col.Item().AlignRight().Text($"DEVIZ NR.: {NrDeviz:D4}").FontSize(12).SemiBold();
-                        col.Item().AlignRight().Text($"DATA: {Data}").FontSize(12).SemiBold();
+                        var dataAfisata = string.IsNullOrWhiteSpace(Data) ? "____________________" : Data;
+                        col.Item().AlignRight().Text($"DATA: {dataAfisata}").FontSize(12).SemiBold();
                         col.Item().AlignRight().Text("Prețuri fără TVA").FontSize(10).FontColor(Colors.Grey.Darken1);
                     });
                 });
