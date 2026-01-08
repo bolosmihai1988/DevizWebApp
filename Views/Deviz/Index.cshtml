@@ -1,102 +1,89 @@
 @model DevizWebApp.Models.DevizDocumentModel
 
 @{
-    Layout = null;
+    ViewData["Title"] = "Creează deviz";
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>Generator Deviz Auto</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        body { font-family: Arial; margin: 20px; }
-        input { margin-bottom: 5px; padding: 5px; width: 260px; }
-        h3 { margin-top: 20px; }
-        .piesa, .manopera { margin-bottom: 10px; }
-        button { margin-top: 10px; }
-        small { color:#666; }
-    </style>
-</head>
-<body>
-    <h2>Generator Deviz Auto</h2>
-    <small>Toate prețurile sunt FĂRĂ TVA</small>
+<div style="display:flex; gap:12px; margin-bottom:15px;">
+    <a class="btn btn-secondary"
+       asp-controller="Deviz"
+       asp-action="Istoric">
+        📜 Istoric devize & facturi
+    </a>
 
-    <form asp-action="GeneratePDF" method="post">
-        <label>Firmă:</label><br/>
-        <input asp-for="Firma" /><br/>
+    <a class="btn btn-success"
+       asp-controller="Factura"
+       asp-action="CreatePiese">
+        ➕ Factură doar piese
+    </a>
+</div>
 
-        <label>CUI:</label><br/>
-        <input asp-for="CUI" /><br/>
+<h2>Creează deviz</h2>
 
-        <label>Adresă:</label><br/>
-        <input asp-for="Adresa" /><br/>
+<form asp-action="GeneratePDF" method="post">
+    @Html.AntiForgeryToken()
 
-        <label>Telefon:</label><br/>
-        <input asp-for="Telefon" /><br/>
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Date client</h4>
+            <input asp-for="Firma" class="form-control mb-2" placeholder="Firmă / Client" />
+            <input asp-for="CUI" class="form-control mb-2" placeholder="CUI" />
+            <input asp-for="Adresa" class="form-control mb-2" placeholder="Adresă" />
+            <input asp-for="Telefon" class="form-control mb-2" placeholder="Telefon" />
+        </div>
 
-        <label>Data devizului:</label><br/>
-        <input asp-for="Data" placeholder="DD/MM/YYYY" /><br/>
+        <div class="col-md-6">
+            <h4>Date mașină</h4>
+            <input asp-for="Masina" class="form-control mb-2" placeholder="Mașină" />
+            <input asp-for="NrInmat" class="form-control mb-2" placeholder="Nr. înmatriculare" />
+            <input asp-for="KM" class="form-control mb-2" placeholder="KM" />
+            <input asp-for="SerieCaroserie" class="form-control mb-2" placeholder="Serie caroserie" />
+            <input asp-for="SerieMotor" class="form-control mb-2" placeholder="Serie motor" />
+        </div>
+    </div>
 
-        <label>Mașină:</label><br/>
-        <input asp-for="Masina" /><br/>
+    <h4 class="mt-3">Constatare</h4>
+    <textarea asp-for="Constatare" class="form-control mb-2"></textarea>
 
-        <label>Număr înmatriculare:</label><br/>
-        <input asp-for="NrInmat" /><br/>
+    <h4>Lucrări convenite</h4>
+    <textarea asp-for="LucrariConvenite" class="form-control mb-2"></textarea>
 
-        <label>KM:</label><br/>
-        <input asp-for="KM" /><br/>
+    <h4>Piese aduse de client</h4>
+    <textarea asp-for="PieseAduseClient" class="form-control mb-3"></textarea>
 
-        <label>Serie caroserie:</label><br/>
-        <input asp-for="SerieCaroserie" /><br/>
+    <h4>Piese</h4>
+    <table class="table">
+        <thead>
+            <tr><th>Denumire</th><th>Cantitate</th><th>Preț</th></tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Piese.Count; i++)
+            {
+                <tr>
+                    <td><input asp-for="Piese[i].Denumire" class="form-control" /></td>
+                    <td><input asp-for="Piese[i].Cantitate" class="form-control" /></td>
+                    <td><input asp-for="Piese[i].PretUnitar" class="form-control" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-        <label>Serie motor:</label><br/>
-        <input asp-for="SerieMotor" /><br/>
+    <h4>Manoperă</h4>
+    <table class="table">
+        <thead>
+            <tr><th>Denumire</th><th>Ore</th><th>Preț/oră</th></tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Manopera.Count; i++)
+            {
+                <tr>
+                    <td><input asp-for="Manopera[i].Denumire" class="form-control" /></td>
+                    <td><input asp-for="Manopera[i].Cantitate" class="form-control" /></td>
+                    <td><input asp-for="Manopera[i].PretUnitar" class="form-control" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-        <label>Constatare:</label><br/>
-        <input asp-for="Constatare" /><br/>
-
-        <label>Lucrări convenite:</label><br/>
-        <input asp-for="LucrariConvenite" /><br/>
-
-        <label>Piese aduse de client:</label><br/>
-        <input asp-for="PieseAduseClient" /><br/>
-
-        <h3>Piese</h3>
-        <div id="pieseContainer"></div>
-        <button type="button" onclick="addPiesa()">Adaugă piesă</button>
-
-        <h3>Manoperă</h3>
-        <div id="manoperaContainer"></div>
-        <button type="button" onclick="addManopera()">Adaugă lucrare</button>
-
-        <br/><br/>
-        <button type="submit">Generează PDF</button>
-    </form>
-
-    <script>
-        function addPiesa() {
-            let index = $('#pieseContainer .piesa').length;
-            $('#pieseContainer').append(`
-                <div class="piesa">
-                    <input name="Piese[${index}].Denumire" placeholder="Denumire piesă" />
-                    <input name="Piese[${index}].Cantitate" placeholder="Cantitate" type="number" step="0.01" value="1" />
-                    <input name="Piese[${index}].PretUnitar" placeholder="Preț/buc (fără TVA)" type="number" step="0.01" />
-                </div>
-            `);
-        }
-
-        function addManopera() {
-            let index = $('#manoperaContainer .manopera').length;
-            $('#manoperaContainer').append(`
-                <div class="manopera">
-                    <input name="Manopera[${index}].Denumire" placeholder="Denumire lucrare" />
-                    <input name="Manopera[${index}].Cantitate" placeholder="Ore" type="number" step="0.01" value="1" />
-                    <input name="Manopera[${index}].PretUnitar" placeholder="Preț/oră (fără TVA)" type="number" step="0.01" />
-                </div>
-            `);
-        }
-    </script>
-</body>
-</html>
+    <button type="submit" class="btn btn-primary btn-lg mt-3">Generează deviz PDF</button>
+</form>
