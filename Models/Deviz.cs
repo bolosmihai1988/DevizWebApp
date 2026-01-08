@@ -9,38 +9,38 @@ public class Deviz
     public int NrDeviz { get; set; }
 
     [MaxLength(200)]
-    public string Firma { get; set; } = "";
+    public string? Firma { get; set; } = "";
 
     [MaxLength(50)]
-    public string CUI { get; set; } = "";
+    public string? CUI { get; set; } = "";
 
     [MaxLength(300)]
-    public string Adresa { get; set; } = "";
+    public string? Adresa { get; set; } = "";
 
     [MaxLength(50)]
-    public string Telefon { get; set; } = "";
+    public string? Telefon { get; set; } = "";
 
     [MaxLength(50)]
-    public string Data { get; set; } = "";
+    public string? Data { get; set; } = "";
 
     [MaxLength(200)]
-    public string Masina { get; set; } = "";
+    public string? Masina { get; set; } = "";
 
     [MaxLength(50)]
-    public string NrInmat { get; set; } = "";
+    public string? NrInmat { get; set; } = "";
 
     [MaxLength(50)]
-    public string KM { get; set; } = "";
+    public string? KM { get; set; } = "";
 
     [MaxLength(50)]
-    public string SerieCaroserie { get; set; } = "";
+    public string? SerieCaroserie { get; set; } = "";
 
     [MaxLength(50)]
-    public string SerieMotor { get; set; } = "";
+    public string? SerieMotor { get; set; } = "";
 
-    public string Constatare { get; set; } = "";
-    public string LucrariConvenite { get; set; } = "";
-    public string PieseAduseClient { get; set; } = "";
+    public string? Constatare { get; set; } = "";
+    public string? LucrariConvenite { get; set; } = "";
+    public string? PieseAduseClient { get; set; } = "";
 
     // Linii salvate (piese + manopera)
     public List<DevizItem> Items { get; set; } = new();
