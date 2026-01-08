@@ -1,104 +1,78 @@
-@model DevizWebApp.Models.IstoricViewModel
+@model DevizWebApp.Models.FacturaPieseModel
 
 @{
-    ViewData["Title"] = "Istoric";
+    ViewData["Title"] = "Factură piese fără deviz";
 }
 
-<h2>Istoric</h2>
+<h2>Factură piese (fără deviz)</h2>
 
-<div style="display:flex; gap:20px; align-items:flex-start;">
-    <!-- STÂNGA: DEVIZE + SELECTARE -->
-    <div style="flex:1;">
-        <h3>Devize</h3>
+<form asp-action="CreatePiese" method="post">
 
-        <form method="post" asp-controller="Factura" asp-action="CreateFromDevize">
-            @Html.AntiForgeryToken()
-
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Nr</th>
-                        <th>Data</th>
-                        <th>Firmă</th>
-                        <th>Mașină</th>
-                        <th>Nr</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var d in Model.Devize)
-                {
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="devizIds" value="@d.Id" />
-                        </td>
-                        <td>@d.NrDeviz.ToString("D4")</td>
-                        <td>@d.Data</td>
-                        <td>@d.Firma</td>
-                        <td>@d.Masina</td>
-                        <td>@d.NrInmat</td>
-                    </tr>
-                }
-                </tbody>
-            </table>
-
-            <button type="submit" class="btn btn-primary">
-                Creează factură din devizele selectate
-            </button>
-        </form>
+    <div class="mb-3">
+        <label>Client</label>
+        <input asp-for="ClientNume" class="form-control" placeholder="Nume client" />
     </div>
 
-    <!-- DREAPTA: FACTURI -->
-    <div style="flex:1;">
-        <h3>Facturi</h3>
-
-        <a class="btn btn-success mb-2"
-           asp-controller="Factura"
-           asp-action="CreatePiese">
-            ➕ Factură piese (fără deviz)
-        </a>
-
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Nr</th>
-                    <th>Data</th>
-                    <th>Client</th>
-                    <th>Total</th>
-                    <th>Acțiuni</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var f in Model.Facturi)
-            {
-                <tr>
-                    <td>@f.NrFactura.ToString("D4")</td>
-                    <td>@f.Data</td>
-                    <td>@f.ClientNume</td>
-                    <td>@f.TotalGeneral.ToString("0.00")</td>
-                    <td style="white-space:nowrap;">
-                        <a class="btn btn-sm btn-secondary"
-                           asp-controller="Factura"
-                           asp-action="DownloadFacturaPdf"
-                           asp-route-id="@f.Id">
-                            PDF
-                        </a>
-
-                        <form method="post"
-                              asp-controller="Factura"
-                              asp-action="DeleteFactura"
-                              asp-route-id="@f.Id"
-                              style="display:inline;">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Sigur vrei să ștergi factura?');">
-                                Șterge
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
+    <div class="mb-3">
+        <label>CUI</label>
+        <input asp-for="ClientCUI" class="form-control" placeholder="CUI (opțional)" />
     </div>
-</div>
+
+    <div class="mb-3">
+        <label>Adresă</label>
+        <input asp-for="ClientAdresa" class="form-control" placeholder="Adresă (opțional)" />
+    </div>
+
+    <hr />
+
+    <h4>Piese</h4>
+
+    <table class="table table-bordered" id="pieseTable">
+        <thead>
+            <tr>
+                <th>Denumire</th>
+                <th>UM</th>
+                <th>Cantitate</th>
+                <th>Preț (RON)</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input name="Piese[0].Denumire" class="form-control" placeholder="Denumire piesă" /></td>
+                <td><input name="Piese[0].UM" class="form-control" value="buc" /></td>
+                <td><input name="Piese[0].Cantitate" type="number" step="0.01" value="1" class="form-control" /></td>
+                <td><input name="Piese[0].PretUnitar" type="number" step="0.01" class="form-control" /></td>
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="removeRow(this)">✖</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-secondary" onclick="addRow()">➕ Adaugă piesă</button>
+
+    <br /><br />
+    <button type="submit" class="btn btn-success">Generează factura</button>
+</form>
+
+<script>
+let index = 1;
+
+function addRow() {
+    const row = `
+    <tr>
+        <td><input name="Piese[${index}].Denumire" class="form-control" placeholder="Denumire piesă" /></td>
+        <td><input name="Piese[${index}].UM" class="form-control" value="buc" /></td>
+        <td><input name="Piese[${index}].Cantitate" type="number" step="0.01" value="1" class="form-control" /></td>
+        <td><input name="Piese[${index}].PretUnitar" type="number" step="0.01" class="form-control" /></td>
+        <td><button type="button" class="btn btn-danger" onclick="removeRow(this)">✖</button></td>
+    </tr>`;
+    document.querySelector("#pieseTable tbody").insertAdjacentHTML("beforeend", row);
+    index++;
+}
+
+function removeRow(btn) {
+    btn.closest("tr").remove();
+}
+</script>
