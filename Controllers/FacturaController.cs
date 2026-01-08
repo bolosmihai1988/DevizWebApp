@@ -1,10 +1,8 @@
 using DevizWebApp.Data;
 using DevizWebApp.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
-
 
 namespace DevizWebApp.Controllers
 {
@@ -17,15 +15,16 @@ namespace DevizWebApp.Controllers
             _db = db;
         }
 
-        // Creează factură din devize bifate în Istoric
+        // =========================
+        // 1) FACTURĂ DIN DEVIZE
+        // =========================
         [HttpPost]
-        [IgnoreAntiforgeryToken]
+        [IgnoreAntiforgeryToken] // pe Render evităm 400
         public async Task<IActionResult> CreateFromDevize([FromForm] int[] devizIds)
         {
             if (devizIds == null || devizIds.Length == 0)
                 return RedirectToAction("Istoric", "Deviz");
 
-            // Tranzacție = rollback dacă apare orice eroare
             await using var tx = await _db.Database.BeginTransactionAsync();
 
             try
@@ -38,37 +37,22 @@ namespace DevizWebApp.Controllers
                 if (devize.Count == 0)
                     return RedirectToAction("Istoric", "Deviz");
 
-                // OPTIONAL: prevenim refacturarea acelorași devize (dacă vrei)
-                // Dacă vrei să PERMIȚI refacturarea, scoate blocul de mai jos.
-                var alreadyLinked = await _db.FacturaDevize
-                    .Where(fd => devizIds.Contains(fd.DevizId))
-                    .AnyAsync();
-
-                if (alreadyLinked)
-                {
-                    // devizele sunt deja prinse într-o factură
-                    // Poți schimba mesajul / redirect cum vrei
-                    return RedirectToAction("Istoric", "Deviz");
-                }
-
                 // nr factură continuu
                 int nextNr = (await _db.Facturi.MaxAsync(f => (int?)f.NrFactura) ?? 0) + 1;
 
-                // Client: luăm din primul deviz (poți rafina ulterior)
+                // Client: luăm din primul deviz
                 var first = devize.OrderBy(d => d.NrDeviz).First();
 
                 var factura = new Factura
                 {
                     NrFactura = nextNr,
                     Data = DateTime.Now.ToString("dd.MM.yyyy"),
-
-                    // dacă ai câmpuri în Deviz pentru client, le mapăm aici
-                    ClientNume = first.Firma,
+                    ClientNume = first.Firma ?? "",
                     ClientCUI = first.CUI ?? "",
                     ClientAdresa = first.Adresa ?? ""
                 };
 
-                // Construim sumarul (2 linii)
+                // Sumar (2 linii: piese + manoperă)
                 var devizNrs = devize.Select(d => d.NrDeviz.ToString("D4")).ToList();
                 string lista = string.Join(", ", devizNrs);
 
@@ -104,16 +88,17 @@ namespace DevizWebApp.Controllers
                     });
                 }
 
+                factura.TotalPiese = totalPiese;
+                factura.TotalManopera = totalManopera;
                 factura.TotalGeneral = factura.Items.Sum(i => i.TotalLinie);
 
-                // Salvăm factura + items (cascade)
                 _db.Facturi.Add(factura);
                 await _db.SaveChangesAsync();
 
-                // Legăm devizele de factură
+                // legăm devizele de factură (ca istoric intern)
                 foreach (var d in devize)
                 {
-                     _db.FacturaDevize.Add(new FacturaDeviz
+                    _db.FacturaDevize.Add(new FacturaDeviz
                     {
                         FacturaId = factura.Id,
                         DevizId = d.Id
@@ -132,6 +117,68 @@ namespace DevizWebApp.Controllers
             }
         }
 
+        // =========================
+        // 2) FACTURĂ PIESE (FĂRĂ DEVIZ)
+        // =========================
+
+        [HttpGet]
+        public IActionResult CreatePiese()
+        {
+            var vm = new FacturaPieseModel();
+
+            // 5 rânduri default (poți crește)
+            for (int i = 0; i < 5; i++)
+                vm.Piese.Add(new FacturaItem { UM = "buc", Cantitate = 1 });
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken] // pe Render evităm 400
+        public async Task<IActionResult> CreatePiese(FacturaPieseModel vm)
+        {
+            var piese = (vm.Piese ?? new List<FacturaItem>())
+                .Where(x => !string.IsNullOrWhiteSpace(x.Denumire))
+                .ToList();
+
+            if (piese.Count == 0)
+                return RedirectToAction("Istoric", "Deviz");
+
+            foreach (var it in piese)
+            {
+                it.Denumire = it.Denumire!.Trim();
+                it.UM = string.IsNullOrWhiteSpace(it.UM) ? "buc" : it.UM.Trim();
+                if (it.Cantitate <= 0) it.Cantitate = 1;
+                if (it.PretUnitar < 0) it.PretUnitar = 0;
+
+                it.TotalLinie = it.Cantitate * it.PretUnitar;
+            }
+
+            int nextNr = (await _db.Facturi.MaxAsync(f => (int?)f.NrFactura) ?? 0) + 1;
+
+            var factura = new Factura
+            {
+                NrFactura = nextNr,
+                Data = DateTime.Now.ToString("dd.MM.yyyy"),
+                ClientNume = vm.ClientNume ?? "",
+                ClientCUI = vm.ClientCUI ?? "",
+                ClientAdresa = vm.ClientAdresa ?? "",
+
+                Items = piese,
+                TotalPiese = piese.Sum(x => x.TotalLinie),
+                TotalManopera = 0,
+                TotalGeneral = piese.Sum(x => x.TotalLinie)
+            };
+
+            _db.Facturi.Add(factura);
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction("Istoric", "Deviz");
+        }
+
+        // =========================
+        // 3) PDF FACTURĂ
+        // =========================
         [HttpGet]
         public async Task<IActionResult> DownloadFacturaPdf(int id)
         {
@@ -149,9 +196,11 @@ namespace DevizWebApp.Controllers
             return File(pdf, "application/pdf", $"Factura_{factura.NrFactura:D4}.pdf");
         }
 
-        // Ștergere factură (hard delete) - curată + tranzacție
+        // =========================
+        // 4) ȘTERGERE FACTURĂ
+        // =========================
         [HttpPost]
-        [IgnoreAntiforgeryToken]
+        [IgnoreAntiforgeryToken] // pe Render evităm 400
         public async Task<IActionResult> DeleteFactura(int id)
         {
             await using var tx = await _db.Database.BeginTransactionAsync();
@@ -165,10 +214,7 @@ namespace DevizWebApp.Controllers
 
                 if (factura == null) return NotFound();
 
-                // explict remove links (deși ai Cascade pe FacturaDevize, e ok și explicit)
                 _db.FacturaDevize.RemoveRange(factura.FacturaDevize);
-
-                // Items sunt Cascade din Facturi -> Items, dar și aici e ok să lași doar Remove(Factura)
                 _db.Facturi.Remove(factura);
 
                 await _db.SaveChangesAsync();
