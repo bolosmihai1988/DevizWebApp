@@ -23,6 +23,7 @@
                         <th>Firmă</th>
                         <th>Mașină</th>
                         <th>Nr</th>
+                        <th>Acțiuni</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,6 +38,26 @@
                         <td>@d.Firma</td>
                         <td>@d.Masina</td>
                         <td>@d.NrInmat</td>
+                        <td style="white-space:nowrap;">
+                            <a class="btn btn-sm btn-secondary"
+                               asp-controller="Deviz"
+                               asp-action="DownloadDevizPdf"
+                               asp-route-id="@d.Id">
+                                PDF
+                            </a>
+
+                            <form method="post"
+                                  asp-controller="Deviz"
+                                  asp-action="DeleteDeviz"
+                                  asp-route-id="@d.Id"
+                                  style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Sigur vrei să ștergi devizul?');">
+                                    Șterge
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                 }
                 </tbody>
