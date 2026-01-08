@@ -11,7 +11,6 @@ public class Factura
     [MaxLength(50)]
     public string Data { get; set; } = "";
 
-    // Client (pe factură)
     [MaxLength(200)]
     public string ClientNume { get; set; } = "";
 
@@ -21,10 +20,12 @@ public class Factura
     [MaxLength(300)]
     public string ClientAdresa { get; set; } = "";
 
+    // TOTALURI
     public decimal TotalPiese { get; set; }
     public decimal TotalManopera { get; set; }
     public decimal TotalGeneral { get; set; }
 
+    // LISTE – FOARTE IMPORTANT
     public List<FacturaItem> Items { get; set; } = new();
     public List<FacturaDeviz> FacturaDevize { get; set; } = new();
 }
