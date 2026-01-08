@@ -18,7 +18,7 @@ namespace DevizWebApp.Controllers
 
         // Creează factură din devize bifate în Istoric
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiForgeryToken]
         public async Task<IActionResult> CreateFromDevize([FromForm] int[] devizIds)
         {
             if (devizIds == null || devizIds.Length == 0)
@@ -112,7 +112,7 @@ namespace DevizWebApp.Controllers
                 // Legăm devizele de factură
                 foreach (var d in devize)
                 {
-                    _db.FacturaDevize.Add(new FacturaDeviz
+                     _db.FacturaDevize.Add(new FacturaDeviz
                     {
                         FacturaId = factura.Id,
                         DevizId = d.Id
@@ -150,7 +150,7 @@ namespace DevizWebApp.Controllers
 
         // Ștergere factură (hard delete) - curată + tranzacție
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiForgeryToken]
         public async Task<IActionResult> DeleteFactura(int id)
         {
             await using var tx = await _db.Database.BeginTransactionAsync();
