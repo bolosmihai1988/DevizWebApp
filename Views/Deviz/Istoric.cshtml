@@ -6,16 +6,22 @@
 
 <h2>Istoric</h2>
 
-<div style="margin:15px 0;">
+<div style="margin:15px 0; display:flex; gap:10px;">
     <a class="btn btn-primary"
        asp-controller="Deviz"
        asp-action="Index">
         ➕ Deviz nou
     </a>
+
+    <a class="btn btn-success"
+       asp-controller="Factura"
+       asp-action="CreatePiese">
+        ➕ Factură piese (fără deviz)
+    </a>
 </div>
 
-
 <div style="display:flex; gap:20px; align-items:flex-start;">
+
     <!-- STÂNGA: DEVIZE + SELECTARE -->
     <div style="flex:1;">
         <h3>Devize</h3>
@@ -23,43 +29,17 @@
         <form method="post" asp-controller="Factura" asp-action="CreateFromDevize">
             @Html.AntiForgeryToken()
 
-            <table class="table">
+            <table class="table table-bordered">
                 <thead>
-                    <th>Acțiuni</th>
-@foreach (var d in Model.Devize)
-{
                     <tr>
-                        <td>
-                           <input type="checkbox" name="devizIds" value="@d.Id" />
-                        </td>
-                        <td>@d.NrDeviz.ToString("D4")</td>
-                        <td>@d.Data</td>
-                        <td>@d.Firma</td>
-                        <td>@d.Masina</td>
-                        <td>@d.NrInmat</td>
-                        <td style="white-space:nowrap;">
-                            <a class="btn btn-sm btn-secondary"
-                               asp-controller="Deviz"
-                               asp-action="DownloadDevizPdf"
-                               asp-route-id="@d.Id">
-                                PDF
-                            </a>
-
-                            <form method="post"
-                                  asp-controller="Deviz"
-                                  asp-action="DeleteDeviz"
-                                  asp-route-id="@d.Id"
-                                  style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Ștergi devizul?');">
-                                    Șterge
-                                </button>
-                            </form>
-                        </td>
+                        <th></th>
+                        <th>Nr</th>
+                        <th>Data</th>
+                        <th>Firmă</th>
+                        <th>Mașină</th>
+                        <th>Nr</th>
+                        <th>Acțiuni</th>
                     </tr>
-}
                 </thead>
                 <tbody>
                 @foreach (var d in Model.Devize)
@@ -73,6 +53,7 @@
                         <td>@d.Firma</td>
                         <td>@d.Masina</td>
                         <td>@d.NrInmat</td>
+
                         <td style="white-space:nowrap;">
                             <a class="btn btn-sm btn-secondary"
                                asp-controller="Deviz"
@@ -81,17 +62,14 @@
                                 PDF
                             </a>
 
-                            <form method="post"
-                                  asp-controller="Deviz"
-                                  asp-action="DeleteDeviz"
-                                  asp-route-id="@d.Id"
-                                  style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Sigur vrei să ștergi devizul?');">
-                                    Șterge
-                                </button>
-                            </form>
+                            <!-- NU facem form în form. Folosim buton cu formaction -->
+                            <button type="submit"
+                                    class="btn btn-sm btn-danger"
+                                    formaction="@Url.Action("DeleteDeviz","Deviz", new { id = d.Id })"
+                                    formmethod="post"
+                                    onclick="return confirm('Sigur vrei să ștergi devizul?');">
+                                Șterge
+                            </button>
                         </td>
                     </tr>
                 }
@@ -108,13 +86,7 @@
     <div style="flex:1;">
         <h3>Facturi</h3>
 
-        <a class="btn btn-success mb-2"
-           asp-controller="Factura"
-           asp-action="CreatePiese">
-            ➕ Factură piese (fără deviz)
-        </a>
-
-        <table class="table">
+        <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>Nr</th>
@@ -146,7 +118,8 @@
                               asp-route-id="@f.Id"
                               style="display:inline;">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-danger"
+                            <button type="submit"
+                                    class="btn btn-sm btn-danger"
                                     onclick="return confirm('Sigur vrei să ștergi factura?');">
                                 Șterge
                             </button>
@@ -157,4 +130,5 @@
             </tbody>
         </table>
     </div>
+
 </div>
