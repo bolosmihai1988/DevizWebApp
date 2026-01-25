@@ -32,7 +32,7 @@ namespace DevizWebApp.Models
         public List<LinieDeviz> Piese { get; set; } = new();
         public List<LinieDeviz> Manopera { get; set; } = new();
 
-        private string LogoPath => Path.Combine(AppContext.BaseDirectory, "logo.png");
+        private string LogoPath => Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "logo.png");
 
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
