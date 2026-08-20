@@ -5,16 +5,24 @@ using QuestPDF.Infrastructure;
 using QuestPDF.Fluent;
 using DevizWebApp.Security;
 
+// Fix pentru Render: evită limita de inotify/file watchers
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- Configurează DbContext principal ---
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
 // --- Configurează DbContext pentru DataProtection keys ---
 builder.Services.AddDbContext<DataProtectionKeyContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
 // --- Configurează DataProtection să folosească baza de date ---
 builder.Services.AddDataProtection()
@@ -27,8 +35,9 @@ builder.Services.AddControllersWithViews();
 QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
-app.UseMiddleware<BasicAuthMiddleware>();
 
+// --- Basic Auth ---
+app.UseMiddleware<BasicAuthMiddleware>();
 
 // --- Aplică migrațiile la startup ---
 using (var scope = app.Services.CreateScope())
@@ -48,17 +57,21 @@ if (!app.Environment.IsDevelopment())
 }
 else
 {
-    // Redirect HTTPS doar local. Pe Render e deja HTTPS în fața aplicației.
+    // Redirect HTTPS doar local.
+    // Pe Render HTTPS este gestionat în fața aplicației.
     app.UseHttpsRedirection();
 }
 
 app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseAuthorization();
 
 // --- Ruta implicită ---
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Deviz}/{action=Index}/{id?}");
+    pattern: "{controller=Deviz}/{action=Index}/{id?}"
+);
 
 app.Run();
