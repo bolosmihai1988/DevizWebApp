@@ -27,33 +27,75 @@
 
     <h4>Piese</h4>
 
+    <div class="alert alert-info">
+        Introdu prețul final, cu TVA 21% inclus. Factura va calcula automat
+        prețul fără TVA, valoarea și TVA-ul.
+    </div>
+
     <table class="table table-bordered" id="pieseTable">
         <thead>
             <tr>
                 <th>Denumire</th>
                 <th>UM</th>
                 <th>Cantitate</th>
-                <th>Preț (RON)</th>
+                <th>Preț cu TVA inclus (RON)</th>
                 <th></th>
             </tr>
         </thead>
+
         <tbody>
             <tr>
-                <td><input name="Piese[0].Denumire" class="form-control" placeholder="Denumire piesă" /></td>
-                <td><input name="Piese[0].UM" class="form-control" value="buc" /></td>
-                <td><input name="Piese[0].Cantitate" type="number" step="0.01" value="1" class="form-control" /></td>
-                <td><input name="Piese[0].PretUnitar" type="number" step="0.01" class="form-control" /></td>
                 <td>
-                    <button type="button" class="btn btn-danger" onclick="removeRow(this)">✖</button>
+                    <input name="Piese[0].Denumire"
+                           class="form-control"
+                           placeholder="Denumire piesă" />
+                </td>
+
+                <td>
+                    <input name="Piese[0].UM"
+                           class="form-control"
+                           value="buc" />
+                </td>
+
+                <td>
+                    <input name="Piese[0].Cantitate"
+                           type="number"
+                           step="0.01"
+                           value="1"
+                           class="form-control" />
+                </td>
+
+                <td>
+                    <input name="Piese[0].PretUnitar"
+                           type="number"
+                           step="0.01"
+                           class="form-control"
+                           placeholder="Ex: 1000" />
+                </td>
+
+                <td>
+                    <button type="button"
+                            class="btn btn-danger"
+                            onclick="removeRow(this)">
+                        ✖
+                    </button>
                 </td>
             </tr>
         </tbody>
     </table>
 
-    <button type="button" class="btn btn-secondary" onclick="addRow()">➕ Adaugă piesă</button>
+    <button type="button"
+            class="btn btn-secondary"
+            onclick="addRow()">
+        ➕ Adaugă piesă
+    </button>
 
     <br /><br />
-    <button type="submit" class="btn btn-success">Generează factura</button>
+
+    <button type="submit"
+            class="btn btn-success">
+        Generează factura
+    </button>
 </form>
 
 <script>
@@ -62,13 +104,46 @@ let index = 1;
 function addRow() {
     const row = `
     <tr>
-        <td><input name="Piese[${index}].Denumire" class="form-control" placeholder="Denumire piesă" /></td>
-        <td><input name="Piese[${index}].UM" class="form-control" value="buc" /></td>
-        <td><input name="Piese[${index}].Cantitate" type="number" step="0.01" value="1" class="form-control" /></td>
-        <td><input name="Piese[${index}].PretUnitar" type="number" step="0.01" class="form-control" /></td>
-        <td><button type="button" class="btn btn-danger" onclick="removeRow(this)">✖</button></td>
+        <td>
+            <input name="Piese[${index}].Denumire"
+                   class="form-control"
+                   placeholder="Denumire piesă" />
+        </td>
+
+        <td>
+            <input name="Piese[${index}].UM"
+                   class="form-control"
+                   value="buc" />
+        </td>
+
+        <td>
+            <input name="Piese[${index}].Cantitate"
+                   type="number"
+                   step="0.01"
+                   value="1"
+                   class="form-control" />
+        </td>
+
+        <td>
+            <input name="Piese[${index}].PretUnitar"
+                   type="number"
+                   step="0.01"
+                   class="form-control"
+                   placeholder="Ex: 1000" />
+        </td>
+
+        <td>
+            <button type="button"
+                    class="btn btn-danger"
+                    onclick="removeRow(this)">
+                ✖
+            </button>
+        </td>
     </tr>`;
-    document.querySelector("#pieseTable tbody").insertAdjacentHTML("beforeend", row);
+
+    document.querySelector("#pieseTable tbody")
+        .insertAdjacentHTML("beforeend", row);
+
     index++;
 }
 
