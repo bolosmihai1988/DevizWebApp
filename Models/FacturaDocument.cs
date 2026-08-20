@@ -32,7 +32,7 @@ namespace DevizWebApp.Models
             string serie = Env("INVOICE_SERIES", "");
 
             // ==========================
-            // TOTALURI FACTURĂ
+            // TOTALURI FACTURA
             // ==========================
 
             decimal totalFaraTVA =
@@ -91,7 +91,7 @@ namespace DevizWebApp.Models
 
                         row.ConstantItem(15);
 
-                        // CUMPĂRĂTOR
+                        // CUMPARATOR
                         row.RelativeItem()
                            .Border(1)
                            .Padding(8)
@@ -134,7 +134,7 @@ namespace DevizWebApp.Models
                 });
 
                 // ==========================
-                // CONȚINUT
+                // CONTINUT
                 // ==========================
 
                 page.Content()
@@ -149,13 +149,13 @@ namespace DevizWebApp.Models
 
                             t.ColumnsDefinition(c =>
                             {
-                                c.ConstantColumn(30);     // Nr.
-                                c.RelativeColumn();       // Denumire
-                                c.ConstantColumn(38);     // UM
-                                c.ConstantColumn(45);     // Cantitate
-                                c.ConstantColumn(75);     // Pret unitar fara TVA
-                                c.ConstantColumn(70);     // Valoare
-                                c.ConstantColumn(65);     // TVA
+                                c.ConstantColumn(30);  // Nr.
+                                c.RelativeColumn();    // Denumire
+                                c.ConstantColumn(38);  // UM
+                                c.ConstantColumn(45);  // Cantitate
+                                c.ConstantColumn(75);  // Pret unitar fara TVA
+                                c.ConstantColumn(70);  // Valoare
+                                c.ConstantColumn(65);  // TVA
                             });
 
                             // ==========================
@@ -217,17 +217,17 @@ namespace DevizWebApp.Models
                                  .Element(RowCellRight)
                                  .Text($"{it.Cantitate:0.##}");
 
-                                // Preț unitar fără TVA
+                                // Pret unitar fara TVA
                                 t.Cell()
                                  .Element(RowCellRight)
                                  .Text($"{it.PretUnitarFaraTVA:F2}");
 
-                                // Valoare = cantitate × preț fără TVA
+                                // Valoare fara TVA
                                 t.Cell()
                                  .Element(RowCellRight)
                                  .Text($"{it.ValoareFaraTVA:F2}");
 
-                                // TVA total linie
+                                // TVA total pe linie
                                 t.Cell()
                                  .Element(RowCellRight)
                                  .Text($"{it.TotalTVA:F2}");
@@ -244,12 +244,12 @@ namespace DevizWebApp.Models
                              .Element(TotalLabelCell)
                              .Text("TOTAL");
 
-                            // Coloana Preț unitar rămâne goală
+                            // Coloana Pret unitar ramane goala
                             t.Cell()
                              .Element(TotalValueCell)
                              .Text("");
 
-                            // Total valoare fără TVA
+                            // Total valoare fara TVA
                             t.Cell()
                              .Element(TotalValueCell)
                              .Text($"{totalFaraTVA:F2}");
@@ -261,7 +261,7 @@ namespace DevizWebApp.Models
                         });
 
                         // ==========================
-                        // TOTAL GENERAL
+                        // TOTALURI GENERALE
                         // ==========================
 
                         col.Item()
@@ -288,7 +288,7 @@ namespace DevizWebApp.Models
                            });
 
                         // ==========================
-                        // SEMNĂTURI
+                        // SEMNATURI
                         // ==========================
 
                         col.Item()
@@ -308,15 +308,9 @@ namespace DevizWebApp.Models
                            });
                     });
 
-                // ==========================
-                // FOOTER
-                // ==========================
-
-                page.Footer()
-                    .AlignCenter()
-                    .Text("TVA 21% inclus în prețurile introduse")
-                    .FontSize(9)
-                    .FontColor(Colors.Grey.Darken1);
+                // Nu mai afisam textul
+                // "TVA 21% inclus in preturile introduse"
+                // in partea de jos a facturii.
             });
         }
 
@@ -336,7 +330,7 @@ namespace DevizWebApp.Models
         }
 
         // ==========================
-        // STIL RÂND
+        // STIL RAND
         // ==========================
 
         private static IContainer RowCell(IContainer c)

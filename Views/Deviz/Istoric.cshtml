@@ -6,7 +6,8 @@
 
 <h2>Istoric</h2>
 
-<div style="margin:15px 0; display:flex; gap:10px;">
+<div style="margin:15px 0; display:flex; gap:10px; flex-wrap:wrap;">
+
     <a class="btn btn-primary"
        asp-controller="Deviz"
        asp-action="Index">
@@ -18,18 +19,31 @@
        asp-action="CreatePiese">
         ➕ Factură piese (fără deviz)
     </a>
+
+    <button type="submit"
+            class="btn btn-primary"
+            form="createInvoiceForm">
+        🧾 Creează factură din devizele selectate
+    </button>
+
 </div>
 
 <div style="display:flex; gap:20px; align-items:flex-start;">
 
     <!-- STÂNGA: DEVIZE + SELECTARE -->
     <div style="flex:1;">
+
         <h3>Devize</h3>
 
-        <form method="post" asp-controller="Factura" asp-action="CreateFromDevize">
+        <form id="createInvoiceForm"
+              method="post"
+              asp-controller="Factura"
+              asp-action="CreateFromDevize">
+
             @Html.AntiForgeryToken()
 
             <table class="table table-bordered">
+
                 <thead>
                     <tr>
                         <th></th>
@@ -41,20 +55,41 @@
                         <th>Acțiuni</th>
                     </tr>
                 </thead>
+
                 <tbody>
+
                 @foreach (var d in Model.Devize)
                 {
                     <tr>
+
                         <td>
-                            <input type="checkbox" name="devizIds" value="@d.Id" />
+                            <input type="checkbox"
+                                   name="devizIds"
+                                   value="@d.Id" />
                         </td>
-                        <td>@d.NrDeviz.ToString("D4")</td>
-                        <td>@d.Data</td>
-                        <td>@d.Firma</td>
-                        <td>@d.Masina</td>
-                        <td>@d.NrInmat</td>
+
+                        <td>
+                            @d.NrDeviz.ToString("D4")
+                        </td>
+
+                        <td>
+                            @d.Data
+                        </td>
+
+                        <td>
+                            @d.Firma
+                        </td>
+
+                        <td>
+                            @d.Masina
+                        </td>
+
+                        <td>
+                            @d.NrInmat
+                        </td>
 
                         <td style="white-space:nowrap;">
+
                             <a class="btn btn-sm btn-secondary"
                                asp-controller="Deviz"
                                asp-action="DownloadDevizPdf"
@@ -62,31 +97,34 @@
                                 PDF
                             </a>
 
-                            <!-- NU facem form în form. Folosim buton cu formaction -->
                             <button type="submit"
                                     class="btn btn-sm btn-danger"
-                                    formaction="@Url.Action("DeleteDeviz","Deviz", new { id = d.Id })"
+                                    formaction="@Url.Action("DeleteDeviz", "Deviz", new { id = d.Id })"
                                     formmethod="post"
                                     onclick="return confirm('Sigur vrei să ștergi devizul?');">
                                 Șterge
                             </button>
+
                         </td>
+
                     </tr>
                 }
+
                 </tbody>
+
             </table>
 
-            <button type="submit" class="btn btn-primary">
-                Creează factură din devizele selectate
-            </button>
         </form>
+
     </div>
 
     <!-- DREAPTA: FACTURI -->
     <div style="flex:1;">
+
         <h3>Facturi</h3>
 
         <table class="table table-bordered">
+
             <thead>
                 <tr>
                     <th>Nr</th>
@@ -96,15 +134,31 @@
                     <th>Acțiuni</th>
                 </tr>
             </thead>
+
             <tbody>
+
             @foreach (var f in Model.Facturi)
             {
                 <tr>
-                    <td>@f.NrFactura.ToString("D4")</td>
-                    <td>@f.Data</td>
-                    <td>@f.ClientNume</td>
-                    <td>@f.TotalGeneral.ToString("0.00")</td>
+
+                    <td>
+                        @f.NrFactura.ToString("D4")
+                    </td>
+
+                    <td>
+                        @f.Data
+                    </td>
+
+                    <td>
+                        @f.ClientNume
+                    </td>
+
+                    <td>
+                        @f.TotalGeneral.ToString("0.00")
+                    </td>
+
                     <td style="white-space:nowrap;">
+
                         <a class="btn btn-sm btn-secondary"
                            asp-controller="Factura"
                            asp-action="DownloadFacturaPdf"
@@ -117,18 +171,26 @@
                               asp-action="DeleteFactura"
                               asp-route-id="@f.Id"
                               style="display:inline;">
+
                             @Html.AntiForgeryToken()
+
                             <button type="submit"
                                     class="btn btn-sm btn-danger"
                                     onclick="return confirm('Sigur vrei să ștergi factura?');">
                                 Șterge
                             </button>
+
                         </form>
+
                     </td>
+
                 </tr>
             }
+
             </tbody>
+
         </table>
+
     </div>
 
 </div>
