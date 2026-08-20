@@ -7,21 +7,30 @@ namespace DevizWebApp.Models
         // Cantitatea (piese sau ore de manoperă)
         public double Cantitate { get; set; }
 
-        // Preț NET (fără TVA) pe unitate
+        // Preț FINAL, cu TVA inclus, introdus de utilizator
         public double PretUnitar { get; set; }
 
         // ====== COMPATIBILITATE PDF ======
 
-        // Preț net pe unitate (folosit în DevizDocument)
-        public double PretFaraTVA => PretUnitar;
+        // Cota TVA 21%
+        public double CotaTVA => 0.21;
 
-        // TVA = 0 pentru că tu lucrezi fără TVA
-        public double TVA => 0.0;
+        // Preț fără TVA pe unitate
+        public double PretFaraTVA => PretUnitar / (1 + CotaTVA);
 
-        // Preț cu TVA = tot net (pentru că TVA=0)
+        // TVA inclus în prețul unitar
+        public double TVA => PretUnitar - PretFaraTVA;
+
+        // Preț cu TVA = exact prețul introdus de tine
         public double PretCuTVA => PretUnitar;
 
-        // Total linie (cantitate × preț)
+        // Total linie cu TVA inclus
         public double Total => Cantitate * PretUnitar;
+
+        // Total fără TVA pentru linie
+        public double TotalFaraTVA => Cantitate * PretFaraTVA;
+
+        // TVA total pentru linie
+        public double TotalTVA => Cantitate * TVA;
     }
 }

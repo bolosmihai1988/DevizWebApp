@@ -33,7 +33,7 @@ namespace DevizWebApp.Controllers
             int nrDeviz = (_db.Devize.Any() ? _db.Devize.Max(d => d.NrDeviz) : 0) + 1;
             model.NrDeviz = nrDeviz;
 
-            // ✅ Construim entitatea Deviz (fără TVA)
+            // ✅ Construim entitatea Deviz 
             var deviz = model.ToDevizEntity();
             deviz.NrDeviz = nrDeviz;
 
